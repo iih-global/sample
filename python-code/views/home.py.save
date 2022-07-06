@@ -1,0 +1,212 @@
+from django.contrib import messages
+from django.shortcuts import render
+from django.http import *
+from django.urls import reverse
+from django.contrib.auth import tokens
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.contrib.auth.hashers import make_password
+from django.utils.encoding import force_text
+# from ..forms import UserForm
+# from job.models import Job
+# from django.contrib.auth.models import User
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.models import User
+from service_categories.models import Categories
+# from django.contrib.auth.hashers import make_password
+from django.contrib.auth.decorators import login_required, user_passes_test
+from Profile.models import Profile
+from service_categories.models import Categories
+from administrator.models import *
+from django.core.mail import send_mail
+from broken_iot.settings import 'support@brokeniot.com'
+# from django.core.signing import Signer
+
+
+def user_check(user):
+    if not user.is_superuser and user.profile.type == 'C':
+        return True
+    else:
+        return False
+
+
+def index(request):
+    top_categories = Categories.objects.filter(top_category__exact="Y")
+    if request.user.is_authenticated:
+        user_type = Profile.objects.filter(user=request.user.id).values_list('type', flat=True)[0]
+    else:
+        user_type = request.user
+    # print(request.user)
+    service_categories = Categories.objects.filter(category_level=2)
+    return render(request,
+                  'customer/index.html',
+                  context={'top_categories': top_categories,
+                           'service_categories': service_categories,
+                           'user_type': user_type})
+
+
+def custom_404(request):
+    return render(request, '404.html', {}, status=404)
+
+
+
+def customer_login(request):
+    next = ""
+    if request.method == 'GET':
+        next = request.GET.get('next', '')
+        # print(request.GET.get('next', ''))
+        return render(request, 'customer/login.html', context={'next': next})
+    elif request.method == 'POST':
+        user_type = request.POST['login_user_type']
+        username = request.POST['username']
+        username_1 = request.POST['username_1']
+        password = request.POST['password']
+        password_1 = request.POST['password_1']
+        next = request.POST['next']
+        if user_type == 'home':
+            user = authenticate(username=username, password=password)
+            if user is not None and user.profile.type == 'C':
+                login(request, user)
+                # messages.add_message(request, messages.SUCCESS, "Logged in Successfully")
+                if next:
+                    return HttpResponseRedirect(next)
+                else:
+                    return HttpResponseRedirect(reverse('customer_profile'))
+            else:
+                messages.add_message(request, messages.ERROR, "Invalid User Credentials")
+                return HttpResponseRedirect(reverse('customer_login'))
+        elif user_type == 'service':
+            user = authenticate(username=username_1, password=password_1)
+            if user is not None and user.profile.type == 'P':
+                login(request, user)
+                # provider_details = Provider_profile.objects.filter(company_name__isnull=False, business_phone__isnull=False, provider_id=request.user.id).count()
+                # print('provider_details')
+                # print(provider_details)
+                # if provider_details:
+                #     return HttpResponseRedirect(reverse('provider_account'))
+                # else:
+                if next:
+                    return HttpResponseRedirect(next)
+                else:
+                    return HttpResponseRedirect(reverse('provider_account'))
+            else:
+                messages.add_message(request, messages.ERROR, "Invalid Pro Credentials")
+                return HttpResponseRedirect(reverse('customer_login'))
+
+
+# def forgot_username(request):
+#     if request.method == "GET":
+#         return render(request, 'customer/forgot_username.html')
+
+def forgot_password(request):
+    if request.method == "GET":
+        return render(request, 'customer/forgot_password.html')
+    elif request.method == "POST":
+        email = request.POST['email']
+        try:
+            user_data = User.objects.get(email=email)
+            # if user_data.exists():
+                # signer = Signer(salt="dark-knight")
+                # signed_id = signer.sign(user_data[0].id)
+            # print(user_data.id)
+            # print(request.get_host())
+            token_generator = tokens.PasswordResetTokenGenerator()
+            generated_token = token_generator.make_token(user_data)
+            encoded_uid = urlsafe_base64_encode(bytes([user_data.id]))
+            # print(encoded_uid)
+            password_reset_link = 'http://'+request.get_host()+reverse('reset_password', kwargs={'user_id': encoded_uid, 'token': generated_token })
+            # print(password_reset_link)
+            custom_message = "You are receiving this mail, because you have placed a password reset request. Click on the link provided to continue to change the password." + password_reset_link
+            send_mail("BrokenIot - Password Reset", custom_message, 'support@brokeniot.com', [user_data.email], fail_silently=False)
+            messages.add_message(request, messages.SUCCESS, "A password reset mail has been forwarded to the registered mail address.")
+            return HttpResponseRedirect(reverse(forgot_password))
+        except (User.DoesNotExist):
+            messages.add_message(request, messages.ERROR, "The mail id provided is not registered with BrokenIot")
+            return HttpResponseRedirect(reverse(forgot_password))
+
+
+def reset_password(request, user_id, token):
+    uid = urlsafe_base64_decode(user_id)
+    uid = int.from_bytes(uid, "little")
+    if request.method == "GET":
+
+        # print(uid)
+        #
+        # print(uid)
+        try:
+            user_data = User.objects.get(pk=uid)
+            token_generator = tokens.PasswordResetTokenGenerator()
+            if token_generator.check_token(user_data, token):
+                # print(token_generator.check_token(user_data, token))
+                return render(request, 'customer/reset_password.html', context={'user_id': user_id,
+                                                                                'token': token})
+            else:
+                return HttpResponse("The link is invalid or has expired")
+        except (User.DoesNotExist):
+            return HttpResponse("The link is invalid or has expired")
+    elif request.method == "POST":
+        # uid = urlsafe_base64_decode(user_id)
+        try:
+            user_data = User.objects.get(pk=uid)
+            token_generator = tokens.PasswordResetTokenGenerator()
+            if token_generator.check_token(user_data, token):
+                # print(token_generator.check_token(user_data, token))
+                new_password = request.POST['new_password']
+                confirm_password = request.POST['confirm_new_password']
+                if new_password == confirm_password:
+                    user_data.password = make_password(new_password)
+                    user_data.save()
+                    messages.add_message(request, messages.SUCCESS, "Password updated Successfully")
+                    return HttpResponseRedirect(reverse(customer_login))
+                else:
+                    messages.add_message(request, messages.ERROR, "Passwords donot match, please try again")
+                    return HttpResponseRedirect(reverse(reset_password, kwargs={'user_id': user_id, 'token': token}))
+            else:
+                return HttpResponse("The link is invalid or has expired")
+        except (User.DoesNotExist):
+            return HttpResponse("The link is invalid or has expired")
+
+@login_required(login_url='customer_login')
+def my_account(request):
+    if request.method == 'GET':
+        if request.user.profile.type == 'C':
+            return HttpResponseRedirect(reverse('customer_profile'))
+        elif request.user.profile.type == 'P':
+            return HttpResponseRedirect(reverse('provider_account'))
+
+
+
+def logout_func(request):
+    logout(request)
+    return HttpResponseRedirect(reverse(customer_login))
+
+
+def about_us(request):
+    if request.method == 'GET':
+        about_data = About.objects.all()
+        return render(request, 'customer/about.html', context={'about_data': about_data})
+
+
+def contact_us(request):
+    if request.method == 'GET':
+        contact_data = Contact.objects.all()
+        return render(request, 'customer/contact.html', context={'contact_data': contact_data})
+
+
+def privacy_policy(request):
+    if request.method == 'GET':
+        privacy_policy_data = Privacy_policy.objects.all()
+        return render(request, 'customer/privacy_policy.html', context={'privacy_policy_data': privacy_policy_data})
+
+
+def terms_and_conditions(request):
+    if request.method == 'GET':
+        terms_and_conditions_data = Terms_and_condition.objects.all()
+        return render(request, 'customer/terms_and_condition.html', context={'terms_and_conditions_data': terms_and_conditions_data})
+
+
+def faq(request):
+    if request.method == "GET":
+        faq_data = Faq.objects.all()
+        return render(request, 'customer/faq.html', context={'faq_data': faq_data})
+
+
