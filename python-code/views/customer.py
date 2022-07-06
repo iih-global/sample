@@ -314,7 +314,7 @@ def find_pro_by_location(request, category_name, cat_id):
     elif request.method == "POST":
         zipcode = request.POST['zipcode']
 
-        gmaps = googlemaps.Client(key='AIzaSyBSjfQJThGLeaOfWVdtWHCkfJ9C9pPeiiY')
+        gmaps = googlemaps.Client(key='')
         geocode_result = gmaps.geocode(zipcode)
         if geocode_result:
 
@@ -334,7 +334,7 @@ def find_pro_by_location(request, category_name, cat_id):
 @user_passes_test(user_check, login_url='customer_login')
 def get_location_pros(request, category_id, lat, lng, category_name):
     if request.method == "GET":
-        gmaps = googlemaps.Client(key='AIzaSyBSjfQJThGLeaOfWVdtWHCkfJ9C9pPeiiY')
+        gmaps = googlemaps.Client(key='')
 
         point = Point(x=float(lat),
                       y=float(lng), z=0)
@@ -383,7 +383,7 @@ def get_location_pros(request, category_id, lat, lng, category_name):
 
         url = "https://maps.googleapis.com/maps/api/geocode/json"
 
-        querystring = {"latlng": lat+','+lng, "key": "AIzaSyBSjfQJThGLeaOfWVdtWHCkfJ9C9pPeiiY"}
+        querystring = {"latlng": lat+','+lng, "key": ""}
 
         payload = ""
         headers = {
