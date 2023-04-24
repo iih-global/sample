@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Account Verification - Email Template</title>
+    <style>
+        body {
+            font-size: 14px;
+            line-height: 1.5;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: #fff !important;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <p>Dear <%=display_name %>,</p>
+        <p>Thank you for creating an account with our service! To activate your account and start using our platform,
+            please click on the following link:</p>
+        <p><a href="<%=verify_account_url %>" class="btn">Verify Your Account</a></p>
+        <p>If you didn't create an account with us, you can safely ignore this email.</p>
+        <p>Best regards,<br>The <%=project_name %> Team</p>
+    </div>
+
+</body>
+
+</html>
