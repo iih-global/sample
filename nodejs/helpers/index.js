@@ -191,7 +191,27 @@ module.exports.idsDecrypter = (data, keys) => {
  */
 exports.base64Encrypt = (text) => Buffer.from(String(text)).toString("base64");
 
-/**
+/**getSignUrlImage: function(msg_image){
+      var date = new Date()
+      date.setDate(date.getDate() + 1);
+      var n = date.getTime();
+      
+      var signingParams = {
+        keypairId: process.env.CF_PUBLIC_KEY,
+        privateKeyString: process.env.CF_PRIVATE_KEY,
+        expireTime: n
+      };
+       console.log(msg_image)
+       if(msg_image !== null){
+        return signedUrl = cfsign.getSignedUrl(
+          msg_image,
+          signingParams
+        );  
+       }else{
+        return null;
+       }
+      
+  },
  *
  * @param {String} text
  * @returns base64 decrypted text
@@ -218,3 +238,30 @@ exports.generateRandomNumberUsingLength = (n = 4) => {
   const max = Math.pow(10, n) - 1;
   return Math.floor(Math.random() * (max - min + 1)) + min;
 };
+
+/**
+ *
+ * @param {Number} n i.e. 6
+ * @returns sign url
+ */
+exports.getSignUrlImage = (msg_image) => {
+      var date = new Date()
+      date.setDate(date.getDate() + 1);
+      var n = date.getTime();
+      
+      var signingParams = {
+        keypairId: process.env.CF_PUBLIC_KEY,
+        privateKeyString: process.env.CF_PRIVATE_KEY,
+        expireTime: n
+      };
+       console.log(msg_image)
+       if(msg_image !== null){
+        return signedUrl = cfsign.getSignedUrl(
+          msg_image,
+          signingParams
+        );  
+       }else{
+        return null;
+       }
+      
+  },
