@@ -11,7 +11,7 @@ const sequelize = new Sequelize(
     dialect: "mysql",
     pool: {
       min: 0, // Minimum number of connection in pool
-      max: 5, // Maximum number of connection in pool
+      max: 15, // Maximum number of connection in pool
       idle: 10000, // The maximum time, in milliseconds, that a connection can be idle before being released.
       acquire: 60000, // The maximum time, in milliseconds, that pool will try to get connection before throwing error
       evict: 1000, // The time interval, in milliseconds, after which sequelize-pool will remove idle connections.
