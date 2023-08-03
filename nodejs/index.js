@@ -52,7 +52,7 @@ app.use("/api", require("./routes"));
 
 // Default route
 app.get("/", (req, res) => {
-  res.status(200).send(`<h1>Welcome to node-express-starter project</h1>`);
+  res.status(200).send(`<h1>Welcome to node express starter project</h1>`);
 });
 
 // common middleware to handle all errors
