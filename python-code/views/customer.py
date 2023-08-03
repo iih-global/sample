@@ -388,7 +388,7 @@ def get_location_pros(request, category_id, lat, lng, category_name):
         payload = ""
         headers = {
             'cache-control': "no-cache",
-            'Postman-Token': "4aa74151-fcb4-445d-a0a0-c491188b5129"
+            'Postman-Token': ""
         }
 
         response = requests.request("GET", url, data=payload, headers=headers, params=querystring)

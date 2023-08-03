@@ -167,7 +167,7 @@ def provider_details(request):
             parent = request.POST.getlist('parent[]')
             pro_details = Provider_profile.objects.get(provider_id=provider.id)
 
-            gmaps = googlemaps.Client(key='AIzaSyBSjfQJThGLeaOfWVdtWHCkfJ9C9pPeiiY')
+            gmaps = googlemaps.Client(key='')
             geocode_result = gmaps.geocode(zipcode)
 
             g = GeoIP2()
@@ -295,7 +295,7 @@ def provider_company_info(request):
                                'country': country})
 
     elif request.method == 'POST':
-        gmaps = googlemaps.Client(key='AIzaSyBSjfQJThGLeaOfWVdtWHCkfJ9C9pPeiiY')
+        gmaps = googlemaps.Client(key='')
         geocode_result = gmaps.geocode(request.POST['zipcode'])
 
         g = GeoIP2()
@@ -453,7 +453,6 @@ def provider_profile(request):
             return HttpResponseRedirect(reverse('provider_profile'))
 
 
-
 @login_required(login_url='customer_login')
 @user_passes_test(user_check, login_url='customer_login')
 def trial_end(request):
@@ -512,6 +511,7 @@ def provider_payment(request):
         currency = 'PKR'
     elif alpha2_country_code == 'CA':
         currency = 'CAD'
+
 
     if request.method == 'GET':
         ######--------------------Authorise.net-----------------########
@@ -1105,12 +1105,13 @@ def get_country_base_on_lat_and_long(lat,lng):
     import requests, json
     from iso3166 import countries
 
+
     url = "https://maps.googleapis.com/maps/api/geocode/json"
-    querystring = {"latlng": str(lat) + ',' + str(lng), "key": "AIzaSyBSjfQJThGLeaOfWVdtWHCkfJ9C9pPeiiY"}
+    querystring = {"latlng": str(lat) + ',' + str(lng), "key": ""}
     payload = ""
     headers = {
         'cache-control': "no-cache",
-        'Postman-Token': "4aa74151-fcb4-445d-a0a0-c491188b5129"
+        'Postman-Token': ""
     }
 
     response = requests.request("GET", url, data=payload, headers=headers, params=querystring)
